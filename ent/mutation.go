@@ -6,11 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"guiio/ent/predicate"
 	"sync"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/guiio/ent/predicate"
 )
 
 const (

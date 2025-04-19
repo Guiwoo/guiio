@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"guiio/guiio_middleware"
+	"guiio/guiio_util"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/rs/zerolog"
@@ -18,14 +21,14 @@ var (
 )
 
 func main() {
-	fmt.Println(string(banner))
+	guiio_util.ServerInfo(banner)
 	Mlog = logger.New()
 
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"*"},
 	}))
-	r.Use(GuiLogger(Mlog, "guiIo"))
+	r.Use(guiio_middleware.NewLogger(Mlog, "guiio"))
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Hello, World!")
 	})

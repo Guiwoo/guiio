@@ -6,13 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"guiio/ent/todo"
 	"reflect"
 	"sync"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/guiio/ent/todo"
 )
 
 // ent aliases to avoid import conflicts in user's code.

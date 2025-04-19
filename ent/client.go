@@ -9,12 +9,13 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/guiio/ent/migrate"
+	"guiio/ent/migrate"
+
+	"guiio/ent/todo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/guiio/ent/todo"
 )
 
 // Client is the client that holds all ent builders.

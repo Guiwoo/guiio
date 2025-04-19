@@ -5,12 +5,13 @@ package enttest
 import (
 	"context"
 
-	"github.com/guiio/ent"
+	"guiio/ent"
 	// required by schema hooks.
-	_ "github.com/guiio/ent/runtime"
+	_ "guiio/ent/runtime"
+
+	"guiio/ent/migrate"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/guiio/ent/migrate"
 )
 
 type (

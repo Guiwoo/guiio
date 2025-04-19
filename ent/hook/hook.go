@@ -5,8 +5,7 @@ package hook
 import (
 	"context"
 	"fmt"
-
-	"github.com/guiio/ent"
+	"guiio/ent"
 )
 
 // The TodoFunc type is an adapter to allow the use of ordinary

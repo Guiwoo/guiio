@@ -3,8 +3,9 @@ package main
 import (
 	"time"
 
+	"guiio/ent"
+
 	"entgo.io/ent/dialect/sql"
-	"github.com/guiio/ent"
 	"github.com/sphynx/config"
 
 	_ "github.com/lib/pq"
