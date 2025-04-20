@@ -2,15 +2,12 @@ package main
 
 import (
 	_ "embed"
-	"fmt"
-	"net/http"
 
-	"guiio/guiio_middleware"
+	"guiio/guiio_server/guiio_http"
 	"guiio/guiio_util"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/cors"
 	"github.com/rs/zerolog"
+	"github.com/sphynx/config"
 	"github.com/sphynx/logger"
 )
 
@@ -24,27 +21,16 @@ func main() {
 	guiio_util.ServerInfo(banner)
 	Mlog = logger.New()
 
-	r := chi.NewRouter()
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"},
-	}))
-	r.Use(guiio_middleware.NewLogger(Mlog, "guiio"))
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, World!")
-	})
+	env, err := guiio_util.GetEnv()
+	if err != nil {
+		Mlog.Panic().Err(err).Msg("Failed to get env")
+		return
+	}
 
-	r.Route("/api/bucket", func(r chi.Router) {
-		//todo trid middleware for all the root rotues before middlewaer
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintln(w, "Hello, World!")
-		})
-		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintln(w, "Hello, World!")
-		})
-	})
+	conf := config.NewConfig(env)
+	server := guiio_http.NewGuiioHttpServer(conf, Mlog)
 
-	Mlog.Info().Msg("Start Server")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	if err := server.Start(); err != nil {
 		Mlog.Panic().Err(err).Msg("Failed to start server")
 	}
 }
