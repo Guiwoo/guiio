@@ -23,7 +23,7 @@ func GetEnv() (map[string]config.ConfigValue[any], error) {
 		return nil, err
 	}
 
-	env, err := os.ReadFile(pwd + "/.env.json")
+	env, err := os.ReadFile(pwd + "/env/.env.json")
 
 	if err != nil {
 		env, err = os.ReadFile(pwd + "/bin/.env.json")

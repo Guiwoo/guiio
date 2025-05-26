@@ -8,16 +8,28 @@ import (
 	"guiio/ent"
 )
 
-// The TodoFunc type is an adapter to allow the use of ordinary
-// function as Todo mutator.
-type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)
+// The ObjectFunc type is an adapter to allow the use of ordinary
+// function as Object mutator.
+type ObjectFunc func(context.Context, *ent.ObjectMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f TodoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.TodoMutation); ok {
+func (f ObjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ObjectMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TodoMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ObjectMutation", m)
+}
+
+// The ObjectMetadataFunc type is an adapter to allow the use of ordinary
+// function as ObjectMetadata mutator.
+type ObjectMetadataFunc func(context.Context, *ent.ObjectMetadataMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ObjectMetadataFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ObjectMetadataMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ObjectMetadataMutation", m)
 }
 
 // Condition is a hook condition function.

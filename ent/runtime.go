@@ -2,8 +2,63 @@
 
 package ent
 
+import (
+	"guiio/ent/object"
+	"guiio/ent/objectmetadata"
+	"guiio/ent/schema"
+	"time"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	objectFields := schema.Object{}.Fields()
+	_ = objectFields
+	// objectDescBucketName is the schema descriptor for bucket_name field.
+	objectDescBucketName := objectFields[1].Descriptor()
+	// object.BucketNameValidator is a validator for the "bucket_name" field. It is called by the builders before save.
+	object.BucketNameValidator = objectDescBucketName.Validators[0].(func(string) error)
+	// objectDescObjectName is the schema descriptor for object_name field.
+	objectDescObjectName := objectFields[2].Descriptor()
+	// object.ObjectNameValidator is a validator for the "object_name" field. It is called by the builders before save.
+	object.ObjectNameValidator = objectDescObjectName.Validators[0].(func(string) error)
+	// objectDescStoragePath is the schema descriptor for storage_path field.
+	objectDescStoragePath := objectFields[3].Descriptor()
+	// object.StoragePathValidator is a validator for the "storage_path" field. It is called by the builders before save.
+	object.StoragePathValidator = objectDescStoragePath.Validators[0].(func(string) error)
+	// objectDescSize is the schema descriptor for size field.
+	objectDescSize := objectFields[5].Descriptor()
+	// object.SizeValidator is a validator for the "size" field. It is called by the builders before save.
+	object.SizeValidator = objectDescSize.Validators[0].(func(int64) error)
+	// objectDescCreatedAt is the schema descriptor for created_at field.
+	objectDescCreatedAt := objectFields[7].Descriptor()
+	// object.DefaultCreatedAt holds the default value on creation for the created_at field.
+	object.DefaultCreatedAt = objectDescCreatedAt.Default.(func() time.Time)
+	// objectDescUpdatedAt is the schema descriptor for updated_at field.
+	objectDescUpdatedAt := objectFields[8].Descriptor()
+	// object.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	object.DefaultUpdatedAt = objectDescUpdatedAt.Default.(func() time.Time)
+	// object.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	object.UpdateDefaultUpdatedAt = objectDescUpdatedAt.UpdateDefault.(func() time.Time)
+	objectmetadataFields := schema.ObjectMetadata{}.Fields()
+	_ = objectmetadataFields
+	// objectmetadataDescKey is the schema descriptor for key field.
+	objectmetadataDescKey := objectmetadataFields[1].Descriptor()
+	// objectmetadata.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	objectmetadata.KeyValidator = objectmetadataDescKey.Validators[0].(func(string) error)
+	// objectmetadataDescObjectID is the schema descriptor for object_id field.
+	objectmetadataDescObjectID := objectmetadataFields[3].Descriptor()
+	// objectmetadata.ObjectIDValidator is a validator for the "object_id" field. It is called by the builders before save.
+	objectmetadata.ObjectIDValidator = objectmetadataDescObjectID.Validators[0].(func(int) error)
+	// objectmetadataDescUpdatedAt is the schema descriptor for updated_at field.
+	objectmetadataDescUpdatedAt := objectmetadataFields[4].Descriptor()
+	// objectmetadata.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	objectmetadata.DefaultUpdatedAt = objectmetadataDescUpdatedAt.Default.(func() time.Time)
+	// objectmetadata.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	objectmetadata.UpdateDefaultUpdatedAt = objectmetadataDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// objectmetadataDescCreatedAt is the schema descriptor for created_at field.
+	objectmetadataDescCreatedAt := objectmetadataFields[5].Descriptor()
+	// objectmetadata.DefaultCreatedAt holds the default value on creation for the created_at field.
+	objectmetadata.DefaultCreatedAt = objectmetadataDescCreatedAt.Default.(func() time.Time)
 }

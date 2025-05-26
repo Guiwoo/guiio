@@ -6,5 +6,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Todo is the predicate function for todo builders.
-type Todo func(*sql.Selector)
+// Object is the predicate function for object builders.
+type Object func(*sql.Selector)
+
+// ObjectMetadata is the predicate function for objectmetadata builders.
+type ObjectMetadata func(*sql.Selector)

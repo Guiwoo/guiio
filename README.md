@@ -1,4 +1,10 @@
 Try To SetUp Like Minio
+
+Stack
+-- EntGo
+-- Chi
+-- PostgreSQL
+
 1. “나만의 미니 S3” 프로젝트
 
 🎯 개념

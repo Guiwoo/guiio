@@ -11,11 +11,13 @@ import (
 
 	"guiio/ent/migrate"
 
-	"guiio/ent/todo"
+	"guiio/ent/object"
+	"guiio/ent/objectmetadata"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -23,8 +25,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Todo is the client for interacting with the Todo builders.
-	Todo *TodoClient
+	// Object is the client for interacting with the Object builders.
+	Object *ObjectClient
+	// ObjectMetadata is the client for interacting with the ObjectMetadata builders.
+	ObjectMetadata *ObjectMetadataClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -36,7 +40,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Todo = NewTodoClient(c.config)
+	c.Object = NewObjectClient(c.config)
+	c.ObjectMetadata = NewObjectMetadataClient(c.config)
 }
 
 type (
@@ -127,9 +132,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Todo:   NewTodoClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		Object:         NewObjectClient(cfg),
+		ObjectMetadata: NewObjectMetadataClient(cfg),
 	}, nil
 }
 
@@ -147,16 +153,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Todo:   NewTodoClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		Object:         NewObjectClient(cfg),
+		ObjectMetadata: NewObjectMetadataClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Todo.
+//		Object.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -178,126 +185,130 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Todo.Use(hooks...)
+	c.Object.Use(hooks...)
+	c.ObjectMetadata.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Todo.Intercept(interceptors...)
+	c.Object.Intercept(interceptors...)
+	c.ObjectMetadata.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *TodoMutation:
-		return c.Todo.mutate(ctx, m)
+	case *ObjectMutation:
+		return c.Object.mutate(ctx, m)
+	case *ObjectMetadataMutation:
+		return c.ObjectMetadata.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
 }
 
-// TodoClient is a client for the Todo schema.
-type TodoClient struct {
+// ObjectClient is a client for the Object schema.
+type ObjectClient struct {
 	config
 }
 
-// NewTodoClient returns a client for the Todo from the given config.
-func NewTodoClient(c config) *TodoClient {
-	return &TodoClient{config: c}
+// NewObjectClient returns a client for the Object from the given config.
+func NewObjectClient(c config) *ObjectClient {
+	return &ObjectClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `todo.Hooks(f(g(h())))`.
-func (c *TodoClient) Use(hooks ...Hook) {
-	c.hooks.Todo = append(c.hooks.Todo, hooks...)
+// A call to `Use(f, g, h)` equals to `object.Hooks(f(g(h())))`.
+func (c *ObjectClient) Use(hooks ...Hook) {
+	c.hooks.Object = append(c.hooks.Object, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `todo.Intercept(f(g(h())))`.
-func (c *TodoClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Todo = append(c.inters.Todo, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `object.Intercept(f(g(h())))`.
+func (c *ObjectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Object = append(c.inters.Object, interceptors...)
 }
 
-// Create returns a builder for creating a Todo entity.
-func (c *TodoClient) Create() *TodoCreate {
-	mutation := newTodoMutation(c.config, OpCreate)
-	return &TodoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Object entity.
+func (c *ObjectClient) Create() *ObjectCreate {
+	mutation := newObjectMutation(c.config, OpCreate)
+	return &ObjectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Todo entities.
-func (c *TodoClient) CreateBulk(builders ...*TodoCreate) *TodoCreateBulk {
-	return &TodoCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Object entities.
+func (c *ObjectClient) CreateBulk(builders ...*ObjectCreate) *ObjectCreateBulk {
+	return &ObjectCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *TodoClient) MapCreateBulk(slice any, setFunc func(*TodoCreate, int)) *TodoCreateBulk {
+func (c *ObjectClient) MapCreateBulk(slice any, setFunc func(*ObjectCreate, int)) *ObjectCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &TodoCreateBulk{err: fmt.Errorf("calling to TodoClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &ObjectCreateBulk{err: fmt.Errorf("calling to ObjectClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*TodoCreate, rv.Len())
+	builders := make([]*ObjectCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &TodoCreateBulk{config: c.config, builders: builders}
+	return &ObjectCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Todo.
-func (c *TodoClient) Update() *TodoUpdate {
-	mutation := newTodoMutation(c.config, OpUpdate)
-	return &TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Object.
+func (c *ObjectClient) Update() *ObjectUpdate {
+	mutation := newObjectMutation(c.config, OpUpdate)
+	return &ObjectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *TodoClient) UpdateOne(t *Todo) *TodoUpdateOne {
-	mutation := newTodoMutation(c.config, OpUpdateOne, withTodo(t))
-	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *ObjectClient) UpdateOne(o *Object) *ObjectUpdateOne {
+	mutation := newObjectMutation(c.config, OpUpdateOne, withObject(o))
+	return &ObjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *TodoClient) UpdateOneID(id int) *TodoUpdateOne {
-	mutation := newTodoMutation(c.config, OpUpdateOne, withTodoID(id))
-	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *ObjectClient) UpdateOneID(id int) *ObjectUpdateOne {
+	mutation := newObjectMutation(c.config, OpUpdateOne, withObjectID(id))
+	return &ObjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Todo.
-func (c *TodoClient) Delete() *TodoDelete {
-	mutation := newTodoMutation(c.config, OpDelete)
-	return &TodoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Object.
+func (c *ObjectClient) Delete() *ObjectDelete {
+	mutation := newObjectMutation(c.config, OpDelete)
+	return &ObjectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
-	return c.DeleteOneID(t.ID)
+func (c *ObjectClient) DeleteOne(o *Object) *ObjectDeleteOne {
+	return c.DeleteOneID(o.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TodoClient) DeleteOneID(id int) *TodoDeleteOne {
-	builder := c.Delete().Where(todo.ID(id))
+func (c *ObjectClient) DeleteOneID(id int) *ObjectDeleteOne {
+	builder := c.Delete().Where(object.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &TodoDeleteOne{builder}
+	return &ObjectDeleteOne{builder}
 }
 
-// Query returns a query builder for Todo.
-func (c *TodoClient) Query() *TodoQuery {
-	return &TodoQuery{
+// Query returns a query builder for Object.
+func (c *ObjectClient) Query() *ObjectQuery {
+	return &ObjectQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeTodo},
+		ctx:    &QueryContext{Type: TypeObject},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a Todo entity by its id.
-func (c *TodoClient) Get(ctx context.Context, id int) (*Todo, error) {
-	return c.Query().Where(todo.ID(id)).Only(ctx)
+// Get returns a Object entity by its id.
+func (c *ObjectClient) Get(ctx context.Context, id int) (*Object, error) {
+	return c.Query().Where(object.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
+func (c *ObjectClient) GetX(ctx context.Context, id int) *Object {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -305,37 +316,202 @@ func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
 	return obj
 }
 
+// QueryMetadata queries the metadata edge of a Object.
+func (c *ObjectClient) QueryMetadata(o *Object) *ObjectMetadataQuery {
+	query := (&ObjectMetadataClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := o.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(object.Table, object.FieldID, id),
+			sqlgraph.To(objectmetadata.Table, objectmetadata.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, object.MetadataTable, object.MetadataColumn),
+		)
+		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
-func (c *TodoClient) Hooks() []Hook {
-	return c.hooks.Todo
+func (c *ObjectClient) Hooks() []Hook {
+	return c.hooks.Object
 }
 
 // Interceptors returns the client interceptors.
-func (c *TodoClient) Interceptors() []Interceptor {
-	return c.inters.Todo
+func (c *ObjectClient) Interceptors() []Interceptor {
+	return c.inters.Object
 }
 
-func (c *TodoClient) mutate(ctx context.Context, m *TodoMutation) (Value, error) {
+func (c *ObjectClient) mutate(ctx context.Context, m *ObjectMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&TodoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&ObjectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&ObjectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&ObjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&TodoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&ObjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown Todo mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown Object mutation op: %q", m.Op())
+	}
+}
+
+// ObjectMetadataClient is a client for the ObjectMetadata schema.
+type ObjectMetadataClient struct {
+	config
+}
+
+// NewObjectMetadataClient returns a client for the ObjectMetadata from the given config.
+func NewObjectMetadataClient(c config) *ObjectMetadataClient {
+	return &ObjectMetadataClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `objectmetadata.Hooks(f(g(h())))`.
+func (c *ObjectMetadataClient) Use(hooks ...Hook) {
+	c.hooks.ObjectMetadata = append(c.hooks.ObjectMetadata, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `objectmetadata.Intercept(f(g(h())))`.
+func (c *ObjectMetadataClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ObjectMetadata = append(c.inters.ObjectMetadata, interceptors...)
+}
+
+// Create returns a builder for creating a ObjectMetadata entity.
+func (c *ObjectMetadataClient) Create() *ObjectMetadataCreate {
+	mutation := newObjectMetadataMutation(c.config, OpCreate)
+	return &ObjectMetadataCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ObjectMetadata entities.
+func (c *ObjectMetadataClient) CreateBulk(builders ...*ObjectMetadataCreate) *ObjectMetadataCreateBulk {
+	return &ObjectMetadataCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ObjectMetadataClient) MapCreateBulk(slice any, setFunc func(*ObjectMetadataCreate, int)) *ObjectMetadataCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ObjectMetadataCreateBulk{err: fmt.Errorf("calling to ObjectMetadataClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ObjectMetadataCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ObjectMetadataCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ObjectMetadata.
+func (c *ObjectMetadataClient) Update() *ObjectMetadataUpdate {
+	mutation := newObjectMetadataMutation(c.config, OpUpdate)
+	return &ObjectMetadataUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ObjectMetadataClient) UpdateOne(om *ObjectMetadata) *ObjectMetadataUpdateOne {
+	mutation := newObjectMetadataMutation(c.config, OpUpdateOne, withObjectMetadata(om))
+	return &ObjectMetadataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ObjectMetadataClient) UpdateOneID(id int) *ObjectMetadataUpdateOne {
+	mutation := newObjectMetadataMutation(c.config, OpUpdateOne, withObjectMetadataID(id))
+	return &ObjectMetadataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ObjectMetadata.
+func (c *ObjectMetadataClient) Delete() *ObjectMetadataDelete {
+	mutation := newObjectMetadataMutation(c.config, OpDelete)
+	return &ObjectMetadataDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ObjectMetadataClient) DeleteOne(om *ObjectMetadata) *ObjectMetadataDeleteOne {
+	return c.DeleteOneID(om.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ObjectMetadataClient) DeleteOneID(id int) *ObjectMetadataDeleteOne {
+	builder := c.Delete().Where(objectmetadata.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ObjectMetadataDeleteOne{builder}
+}
+
+// Query returns a query builder for ObjectMetadata.
+func (c *ObjectMetadataClient) Query() *ObjectMetadataQuery {
+	return &ObjectMetadataQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeObjectMetadata},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ObjectMetadata entity by its id.
+func (c *ObjectMetadataClient) Get(ctx context.Context, id int) (*ObjectMetadata, error) {
+	return c.Query().Where(objectmetadata.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ObjectMetadataClient) GetX(ctx context.Context, id int) *ObjectMetadata {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryObject queries the object edge of a ObjectMetadata.
+func (c *ObjectMetadataClient) QueryObject(om *ObjectMetadata) *ObjectQuery {
+	query := (&ObjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := om.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(objectmetadata.Table, objectmetadata.FieldID, id),
+			sqlgraph.To(object.Table, object.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, objectmetadata.ObjectTable, objectmetadata.ObjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(om.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ObjectMetadataClient) Hooks() []Hook {
+	return c.hooks.ObjectMetadata
+}
+
+// Interceptors returns the client interceptors.
+func (c *ObjectMetadataClient) Interceptors() []Interceptor {
+	return c.inters.ObjectMetadata
+}
+
+func (c *ObjectMetadataClient) mutate(ctx context.Context, m *ObjectMetadataMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ObjectMetadataCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ObjectMetadataUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ObjectMetadataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ObjectMetadataDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ObjectMetadata mutation op: %q", m.Op())
 	}
 }
 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Todo []ent.Hook
+		Object, ObjectMetadata []ent.Hook
 	}
 	inters struct {
-		Todo []ent.Interceptor
+		Object, ObjectMetadata []ent.Interceptor
 	}
 )

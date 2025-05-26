@@ -6,7 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"guiio/ent/todo"
+	"guiio/ent/object"
+	"guiio/ent/objectmetadata"
 	"reflect"
 	"sync"
 
@@ -73,7 +74,8 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			todo.Table: todo.ValidColumn,
+			object.Table:         object.ValidColumn,
+			objectmetadata.Table: objectmetadata.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

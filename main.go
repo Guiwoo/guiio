@@ -3,7 +3,7 @@ package main
 import (
 	_ "embed"
 
-	"guiio/guiio_server/guiio_http"
+	guiio_http "guiio/guiio_server"
 	"guiio/guiio_util"
 
 	"github.com/rs/zerolog"
@@ -12,13 +12,14 @@ import (
 )
 
 var (
+	Version string
 	//go:embed banner.txt
 	banner []byte
 	Mlog   *zerolog.Logger
 )
 
 func main() {
-	guiio_util.ServerInfo(banner)
+	guiio_util.ServerInfo(banner, Version)
 	Mlog = logger.New()
 
 	env, err := guiio_util.GetEnv()
