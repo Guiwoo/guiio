@@ -1,4 +1,4 @@
-package guiio_handler
+package guiio_http
 
 import (
 	"encoding/json"

@@ -1,6 +1,8 @@
 package guiio_service
 
-import "net/http"
+import (
+	guiio_http "guiio/guiio_server/http"
+)
 
 type StorageService struct {
 }
@@ -9,11 +11,12 @@ func NewStorageService() *StorageService {
 	return &StorageService{}
 }
 
-func (s *StorageService) ListBucket(w http.ResponseWriter, r *http.Request) {
+func (s *StorageService) ListBucket(ctx guiio_http.Context) error {
+	return nil
 }
 
-func (s *StorageService) CreateBucket(w http.ResponseWriter, r *http.Request) {
+func (s *StorageService) CreateBucket(ctx guiio_http.Context) {
 }
 
-func (s *StorageService) DeleteBucket(w http.ResponseWriter, r *http.Request) {
+func (s *StorageService) DeleteBucket(ctx guiio_http.Context) {
 }

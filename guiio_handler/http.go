@@ -1,7 +1,8 @@
 package guiio_handler
 
 import (
-	guiio_http "guiio/guiio_server"
+	"guiio/guiio_middleware"
+	guiio_http "guiio/guiio_server/http"
 	"guiio/guiio_service"
 	"net/http"
 
@@ -12,7 +13,8 @@ import (
 
 type HttpHandler struct {
 	server        *guiio_http.GuiioHttpServer
-	bucketService BucketService
+	bucketService guiio_service.BucketService
+	log           *zerolog.Logger
 }
 
 func NewHttpHandler(conf *config.GConfig, log *zerolog.Logger) *HttpHandler {
@@ -22,6 +24,7 @@ func NewHttpHandler(conf *config.GConfig, log *zerolog.Logger) *HttpHandler {
 	return &HttpHandler{
 		server:        server,
 		bucketService: bucketService,
+		log:           log,
 	}
 }
 
@@ -32,6 +35,8 @@ func (h *HttpHandler) Start() error {
 func (h *HttpHandler) Init() {
 	router := h.server.GetRouter()
 
+	router.Use(guiio_middleware.HttpRequestLogger(h.log))
+
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Get("/", h.ListBucket)
 		r.Post("/", h.CreateBucket)
@@ -40,13 +45,17 @@ func (h *HttpHandler) Init() {
 }
 
 func (h *HttpHandler) ListBucket(w http.ResponseWriter, r *http.Request) {
-	h.bucketService.ListBucket(w, r)
+	ctx := guiio_http.NewChiContext(w, r)
+	h.bucketService.ListBucket(ctx)
 }
 
 func (h *HttpHandler) CreateBucket(w http.ResponseWriter, r *http.Request) {
-	h.bucketService.CreateBucket(w, r)
+	ctx := guiio_http.NewChiContext(w, r)
+
+	h.bucketService.CreateBucket(ctx)
 }
 
 func (h *HttpHandler) DeleteBucket(w http.ResponseWriter, r *http.Request) {
-	h.bucketService.DeleteBucket(w, r)
+	ctx := guiio_http.NewChiContext(w, r)
+	h.bucketService.DeleteBucket(ctx)
 }

@@ -9,6 +9,15 @@ import (
 	"github.com/rs/zerolog"
 )
 
+func HttpRequestLogger(log *zerolog.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Info().Msgf("New Requset: [%s]", r.URL.Path)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func NewLogger(l *zerolog.Logger, serverName string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

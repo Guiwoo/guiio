@@ -3,7 +3,7 @@ package main
 import (
 	_ "embed"
 
-	guiio_http "guiio/guiio_server"
+	guiio_http "guiio/guiio_server/http"
 	"guiio/guiio_util"
 
 	"github.com/rs/zerolog"

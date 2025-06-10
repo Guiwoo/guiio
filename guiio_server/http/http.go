@@ -18,6 +18,7 @@ type GuiioHttpServer struct {
 }
 
 func NewGuiioHttpServer(conf *config.GConfig, log *zerolog.Logger) *GuiioHttpServer {
+	log.Info().Msgf("HttpServer Conf %+v", conf)
 	server := &GuiioHttpServer{
 		router: chi.NewRouter(),
 		log:    log,

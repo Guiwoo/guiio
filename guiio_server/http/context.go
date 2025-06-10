@@ -1,4 +1,4 @@
-package guiio_handler
+package guiio_http
 
 // Context는 HTTP 요청 컨텍스트를 추상화한 인터페이스입니다.
 type Context interface {
