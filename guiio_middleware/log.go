@@ -9,25 +9,16 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func HttpRequestLogger(log *zerolog.Logger) func(next http.Handler) http.Handler {
+func HttrRequestLogger(log *zerolog.Logger, name string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Info().Msgf("New Requset: [%s]", r.URL.Path)
-			next.ServeHTTP(w, r)
-		})
-	}
-}
+			now := time.Now()
+			ctx := context.WithValue(r.Context(), guiio_util.Time, now)
 
-func NewLogger(l *zerolog.Logger, serverName string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			trId := guiio_util.GenerateTRID(serverName)
-			ctx := context.WithValue(r.Context(), guiio_util.TrID, trId)
-			ctx = context.WithValue(ctx, guiio_util.Time, time.Now())
+			trId := guiio_util.GenerateTRID(name, now)
+			ctx = context.WithValue(r.Context(), "trid", trId)
 
-			myCtx := context.WithValue(context.Background(), guiio_util.TrID, trId)
-			l.Info().Ctx(myCtx).Msg("Request started")
-
+			log.Info().Ctx(ctx).Msgf("New Requset: %s", r.URL.Path)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

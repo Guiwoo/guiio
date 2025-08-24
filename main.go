@@ -3,7 +3,7 @@ package main
 import (
 	_ "embed"
 
-	guiio_http "guiio/guiio_server/http"
+	"guiio/guiio_handler"
 	"guiio/guiio_util"
 
 	"github.com/rs/zerolog"
@@ -29,9 +29,9 @@ func main() {
 	}
 
 	conf := config.NewConfig(env)
-	server := guiio_http.NewGuiioHttpServer(conf, Mlog)
+	handler := guiio_handler.NewHttpHandler(conf, Mlog)
 
-	if err := server.Start(); err != nil {
+	if err := handler.Start(); err != nil {
 		Mlog.Panic().Err(err).Msg("Failed to start server")
 	}
 }

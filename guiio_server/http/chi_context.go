@@ -7,13 +7,11 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// ChiContext는 Chi 프레임워크를 위한 Context 구현체입니다.
 type ChiContext struct {
 	w http.ResponseWriter
 	r *http.Request
 }
 
-// NewChiContext는 새로운 ChiContext를 생성합니다.
 func NewChiContext(w http.ResponseWriter, r *http.Request) Context {
 	return &ChiContext{w: w, r: r}
 }

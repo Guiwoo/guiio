@@ -15,8 +15,8 @@ func init() {
 	flag.BoolVar(&showVer, "v", false, "show version")
 }
 
-func GenerateTRID(serverName string) string {
-	return fmt.Sprintf("%s-%d", serverName, time.Now().UnixNano())
+func GenerateTRID(serverName string, now time.Time) string {
+	return fmt.Sprintf("%s-%d", serverName, now.UnixNano())
 }
 
 func ServerInfo(banner []byte, ver string) {
