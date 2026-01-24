@@ -10,11 +10,16 @@ import (
 
 var (
 	defaultValue = map[string]any{
-		"server_name":       "guiio",
-		"port":              8080,
-		"db_max_idle_conns": 10,
-		"db_max_conns":      100,
-		"db_max_timout":     10,
+		"server_name":        "guiio",
+		"port":               8080,
+		"db_max_idle_conns":  10,
+		"db_max_conns":       100,
+		"db_max_timout":      10,
+		"storage_endpoint":   "",
+		"storage_access_key": "",
+		"storage_secret_key": "",
+		"storage_region":     "",
+		"storage_use_ssl":    false,
 	}
 )
 

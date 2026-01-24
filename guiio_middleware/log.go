@@ -15,8 +15,8 @@ func HttrRequestLogger(log *zerolog.Logger, name string) func(next http.Handler)
 			now := time.Now()
 			ctx := context.WithValue(r.Context(), guiio_util.Time, now)
 
-			trId := guiio_util.GenerateTRID(name, now)
-			ctx = context.WithValue(r.Context(), "trid", trId)
+			trID := guiio_util.GenerateTRID(name, now)
+			ctx = context.WithValue(ctx, guiio_util.TrID, trID)
 
 			log.Info().Ctx(ctx).Msgf("New Requset: %s", r.URL.Path)
 			next.ServeHTTP(w, r.WithContext(ctx))

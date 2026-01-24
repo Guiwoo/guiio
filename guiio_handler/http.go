@@ -19,15 +19,18 @@ type HttpHandler struct {
 	bucketService guiio_service.BucketService
 }
 
-func NewHttpHandler(conf *config.GConfig, log *zerolog.Logger) *HttpHandler {
+func NewHttpHandler(conf *config.GConfig, log *zerolog.Logger) (*HttpHandler, error) {
 	//Todo 밖으로 빼기
-	bucketService := guiio_service.NewStorageService()
+	bucketService, err := guiio_service.NewStorageService()
+	if err != nil {
+		return nil, err
+	}
 
 	return &HttpHandler{
 		conf:          conf,
 		log:           log,
 		bucketService: bucketService,
-	}
+	}, nil
 }
 
 func (h *HttpHandler) Start() error {

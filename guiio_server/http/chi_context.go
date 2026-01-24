@@ -1,6 +1,7 @@
 package guiio_http
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -8,12 +9,13 @@ import (
 )
 
 type ChiContext struct {
-	w http.ResponseWriter
-	r *http.Request
+	ctx context.Context
+	w   http.ResponseWriter
+	r   *http.Request
 }
 
 func NewChiContext(w http.ResponseWriter, r *http.Request) Context {
-	return &ChiContext{w: w, r: r}
+	return &ChiContext{ctx: r.Context(), w: w, r: r}
 }
 
 func (c *ChiContext) JSON(code int, v interface{}) error {
@@ -40,4 +42,11 @@ func (c *ChiContext) GetHeader(name string) string {
 
 func (c *ChiContext) SetHeader(name, value string) {
 	c.w.Header().Set(name, value)
+}
+
+func (c *ChiContext) Context() context.Context {
+	if c.ctx != nil {
+		return c.ctx
+	}
+	return c.r.Context()
 }

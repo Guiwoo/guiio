@@ -1,5 +1,7 @@
 package guiio_http
 
+import "context"
+
 // Context는 HTTP 요청 컨텍스트를 추상화한 인터페이스입니다.
 type Context interface {
 	// JSON은 JSON 응답을 전송합니다.
@@ -19,4 +21,7 @@ type Context interface {
 
 	// SetHeader는 응답 헤더를 설정합니다.
 	SetHeader(name, value string)
+
+	// Context는 표준 context.Context를 반환합니다.
+	Context() context.Context
 }

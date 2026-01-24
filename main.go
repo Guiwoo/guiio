@@ -29,7 +29,11 @@ func main() {
 	}
 
 	conf := config.NewConfig(env)
-	handler := guiio_handler.NewHttpHandler(conf, Mlog)
+	handler, err := guiio_handler.NewHttpHandler(conf, Mlog)
+	if err != nil {
+		Mlog.Panic().Err(err).Msg("Failed to create http handler")
+		return
+	}
 
 	if err := handler.Start(); err != nil {
 		Mlog.Panic().Err(err).Msg("Failed to start server")
