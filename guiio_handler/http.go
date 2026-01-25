@@ -3,6 +3,7 @@ package guiio_handler
 import (
 	"fmt"
 	"guiio/guiio_middleware"
+	guiio_repository "guiio/guiio_repository"
 	"guiio/guiio_service"
 	"net/http"
 
@@ -19,9 +20,9 @@ type HttpHandler struct {
 	bucketService guiio_service.BucketService
 }
 
-func NewHttpHandler(conf *config.GConfig, log *zerolog.Logger) (*HttpHandler, error) {
+func NewHttpHandler(conf *config.GConfig, log *zerolog.Logger, repo guiio_repository.ObjectRepository) (*HttpHandler, error) {
 	//Todo 밖으로 빼기
-	bucketService, err := guiio_service.NewStorageService()
+	bucketService, err := guiio_service.NewStorageService(repo)
 	if err != nil {
 		return nil, err
 	}

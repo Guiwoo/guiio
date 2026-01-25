@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	guiio_repository "guiio/guiio_repository"
 	guiio_http "guiio/guiio_server/http"
 
 	"github.com/minio/minio-go/v7"
@@ -17,6 +18,7 @@ import (
 type StorageService struct {
 	client        StorageClient
 	defaultRegion string
+	repo          guiio_repository.ObjectRepository
 }
 
 type StorageClient interface {
@@ -36,7 +38,7 @@ type createBucketRequest struct {
 	Region string `json:"region,omitempty"`
 }
 
-func NewStorageService() (*StorageService, error) {
+func NewStorageService(repo guiio_repository.ObjectRepository) (*StorageService, error) {
 	endpoint := strings.TrimSpace(config.Get[string]("storage_endpoint"))
 	accessKey := strings.TrimSpace(config.Get[string]("storage_access_key"))
 	secretKey := strings.TrimSpace(config.Get[string]("storage_secret_key"))
@@ -56,13 +58,14 @@ func NewStorageService() (*StorageService, error) {
 		return nil, fmt.Errorf("failed to initialize storage client: %w", err)
 	}
 
-	return NewStorageServiceWithClient(client, region), nil
+	return NewStorageServiceWithClient(client, region, repo), nil
 }
 
-func NewStorageServiceWithClient(client StorageClient, defaultRegion string) *StorageService {
+func NewStorageServiceWithClient(client StorageClient, defaultRegion string, repo guiio_repository.ObjectRepository) *StorageService {
 	return &StorageService{
 		client:        client,
 		defaultRegion: defaultRegion,
+		repo:          repo,
 	}
 }
 

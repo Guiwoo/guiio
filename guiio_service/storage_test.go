@@ -75,7 +75,7 @@ func (c *fakeContext) Context() context.Context { return context.Background() }
 
 func TestCreateBucket(t *testing.T) {
 	client := &fakeStorageClient{existsMap: map[string]bool{"dup": true}}
-	svc := NewStorageServiceWithClient(client, "default")
+	svc := NewStorageServiceWithClient(client, "default", nil)
 
 	t.Run("success", func(t *testing.T) {
 		ctx := &fakeContext{body: []byte(`{"name":"ok"}`)}
@@ -122,7 +122,7 @@ func TestCreateBucket(t *testing.T) {
 
 func TestDeleteBucket(t *testing.T) {
 	client := &fakeStorageClient{existsMap: map[string]bool{"keep": true}}
-	svc := NewStorageServiceWithClient(client, "")
+	svc := NewStorageServiceWithClient(client, "", nil)
 
 	t.Run("success", func(t *testing.T) {
 		ctx := &fakeContext{params: map[string]string{"bucketName": "keep"}}
@@ -159,7 +159,7 @@ func TestListBucket(t *testing.T) {
 	client := &fakeStorageClient{
 		listResp: []minio.BucketInfo{{Name: "a", CreationDate: now}},
 	}
-	svc := NewStorageServiceWithClient(client, "")
+	svc := NewStorageServiceWithClient(client, "", nil)
 	ctx := &fakeContext{}
 
 	err := svc.ListBucket(ctx)

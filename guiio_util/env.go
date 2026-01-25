@@ -15,6 +15,7 @@ var (
 		"db_max_idle_conns":  10,
 		"db_max_conns":       100,
 		"db_max_timout":      10,
+		"db_dsn":             "postgres://guiio:guiio@localhost:25432/guiio?sslmode=disable",
 		"storage_endpoint":   "",
 		"storage_access_key": "",
 		"storage_secret_key": "",

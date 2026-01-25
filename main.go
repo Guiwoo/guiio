@@ -4,6 +4,7 @@ import (
 	_ "embed"
 
 	"guiio/guiio_handler"
+	guiio_repository "guiio/guiio_repository"
 	"guiio/guiio_util"
 
 	"github.com/rs/zerolog"
@@ -29,7 +30,15 @@ func main() {
 	}
 
 	conf := config.NewConfig(env)
-	handler, err := guiio_handler.NewHttpHandler(conf, Mlog)
+	db, err := InitDB()
+	if err != nil {
+		Mlog.Panic().Err(err).Msg("Failed to init db")
+		return
+	}
+	defer db.Close()
+
+	repo := guiio_repository.NewObjectRepository(db)
+	handler, err := guiio_handler.NewHttpHandler(conf, Mlog, repo)
 	if err != nil {
 		Mlog.Panic().Err(err).Msg("Failed to create http handler")
 		return
