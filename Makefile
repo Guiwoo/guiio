@@ -12,4 +12,4 @@ build:
 	@echo "===> Go Build"
 	go build \
 		-ldflags "-X main.Version=$(VERSION)" \
-		-o bin/guiio
+		-o bin/guiio ./backend/cmd/api

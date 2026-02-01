@@ -1,0 +1,261 @@
+basePath: /api/v1
+definitions:
+  guiio_backend_internal_service.BucketInfo:
+    properties:
+      created_at:
+        type: string
+      name:
+        type: string
+    type: object
+  guiio_backend_internal_service.BucketListResponse:
+    properties:
+      buckets:
+        items:
+          $ref: '#/definitions/guiio_backend_internal_service.BucketInfo'
+        type: array
+    type: object
+  guiio_backend_internal_service.BucketResponse:
+    properties:
+      created_at:
+        type: string
+      name:
+        type: string
+      region:
+        type: string
+    type: object
+  guiio_backend_internal_service.CreateBucketRequest:
+    properties:
+      name:
+        type: string
+      region:
+        type: string
+    type: object
+  guiio_backend_internal_service.DeleteBucketResponse:
+    properties:
+      deleted:
+        type: string
+    type: object
+  guiio_backend_internal_service.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  guiio_backend_internal_service.UploadObjectResponse:
+    properties:
+      bucket:
+        type: string
+      content_type:
+        type: string
+      etag:
+        type: string
+      object:
+        type: string
+      size:
+        type: integer
+      storage_path:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: MinIO 스타일 객체 저장소 API
+  title: guiio API
+  version: "1.0"
+paths:
+  /api/v1/buckets:
+    get:
+      description: 저장소에 존재하는 모든 버킷을 반환합니다.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.BucketListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+      summary: 버킷 목록 조회
+      tags:
+      - buckets
+    post:
+      consumes:
+      - application/json
+      description: 버킷 이름과 선택적 리전을 받아 새 버킷을 생성합니다.
+      parameters:
+      - description: 버킷 생성 요청
+        in: body
+        name: bucket
+        required: true
+        schema:
+          $ref: '#/definitions/guiio_backend_internal_service.CreateBucketRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.BucketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+      summary: 버킷 생성
+      tags:
+      - buckets
+  /api/v1/buckets/{bucketName}:
+    delete:
+      description: 버킷을 삭제합니다. 비어 있지 않은 버킷은 스토리지에서 거부될 수 있습니다.
+      parameters:
+      - description: 버킷 이름
+        in: path
+        name: bucketName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.DeleteBucketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+      summary: 버킷 삭제
+      tags:
+      - buckets
+    get:
+      description: 버킷 존재 여부와 생성 시점을 반환합니다.
+      parameters:
+      - description: 버킷 이름
+        in: path
+        name: bucketName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.BucketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+      summary: 버킷 상세 조회
+      tags:
+      - buckets
+  /api/v1/buckets/{bucketName}/objects:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 멀티파트 파일을 업로드하고 메타데이터와 함께 저장합니다.
+      parameters:
+      - description: 버킷 이름
+        in: path
+        name: bucketName
+        required: true
+        type: string
+      - description: 업로드 파일
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: 저장할 객체 이름
+        in: formData
+        name: objectName
+        type: string
+      - description: 메타데이터 (meta- 접두사 사용)
+        in: formData
+        name: meta-xxx
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.UploadObjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+      summary: 객체 업로드
+      tags:
+      - buckets
+  /api/v1/buckets/{bucketName}/objects/{objectName}:
+    get:
+      description: 버킷의 객체를 스트리밍으로 반환합니다.
+      parameters:
+      - description: 버킷 이름
+        in: path
+        name: bucketName
+        required: true
+        type: string
+      - description: 객체 이름
+        in: path
+        name: objectName
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "304":
+          description: Not Modified
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/guiio_backend_internal_service.ErrorResponse'
+      summary: 객체 다운로드
+      tags:
+      - buckets
+swagger: "2.0"
